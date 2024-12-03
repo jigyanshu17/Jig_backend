@@ -11,9 +11,12 @@ dotenv.config({
 
 connectDB()
 .then(() => {
-    app.listen(process.env.PORT || 8000, () => {
-        console.log(`⚙️ Server is running at port : ${process.env.PORT}`);
-    })
+   app.listen(process.env.PORT || 8000, () => {
+     const port = process.env.PORT || 8000;
+     const localHostLink = `http://localhost:${port}`;
+     console.log(`⚙️ Server is running at port: ${port}`);
+     console.log(`🌐 Local host link: ${localHostLink}`);
+   });
 })
 .catch((err) => {
     console.log("MONGO db connection failed !!! ", err);
