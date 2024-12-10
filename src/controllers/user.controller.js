@@ -143,42 +143,72 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 });
 
-const refreshAccessToken = asyncHandler(async (req, res) => { 
-  const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  // Step 1: Extract Refresh Token
+  // Retrieve refresh token from cookies or request body
+  const incomingRefreshToken =
+    req.cookies.refreshToken || req.body.refreshToken;
+
+  // Step 2: Validate Refresh Token Presence
+  // Check if refresh token exists
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Unauthorized Request");
   }
- try {
-  const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
- const user = await User.findById(decodedToken?._id)
- 
-   if (!user) {
-     throw new ApiError(401, "invalid Refresh Token");   
-   }
-   
-   if (user?.refreshToken !== incomingRefreshToken) {
-     throw new ApiError(401, "Refresh Token is been expired or used");
-   }
- 
+
+  try {
+    // Step 3: Verify Refresh Token
+    // Decode and verify the refresh token using the secret key
+    const decodedToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+
+    // Step 4: Find User Associated with Token
+    // Retrieve user from database using decoded token's ID
+    const user = await User.findById(decodedToken?._id);
+
+    // Step 5: Validate User Existence
+    // Ensure user exists in the database
+    if (!user) {
+      throw new ApiError(401, "Invalid Refresh Token");
+    }
+
+    // Step 6: Validate Refresh Token Integrity
+    // Check if the incoming refresh token matches the stored refresh token
+    if (user?.refreshToken !== incomingRefreshToken) {
+      throw new ApiError(401, "Refresh Token has been expired or used");
+    }
+
+    // Step 7: Set Cookie Options
+    // Configure cookie settings for security
     const options = {
       httpOnly: true,
       secure: true,
-   };
-  const {accessToken,newRefreshToken} = await generateAccessandRefreshToken(user._id)
- 
-   return res
-     .status(200)
-     .cookie("accessToken", accessToken, options)
-     .cookie("refreshToken", newRefreshToken, options)
-     .json(new ApiResponse(
-       200,
-       { accessToken, refreshToken: newRefreshToken },
-       "Token refreshed successfully"
-     ));
- } catch (error) {
-   throw new ApiError(401, error?.message|| "invalid Refresh Token");
- }
-  
+    };
+
+    // Step 8: Generate New Tokens
+    // Create new access and refresh tokens
+    const { accessToken, newRefreshToken } =
+      await generateAccessandRefreshToken(user._id);
+
+    // Step 9: Send Response
+    // Return new tokens via cookies and JSON response
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", newRefreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          { accessToken, refreshToken: newRefreshToken },
+          "Token refreshed successfully"
+        )
+      );
+  } catch (error) {
+    // Step 10: Error Handling
+    // Catch and handle any errors during token refresh process
+    throw new ApiError(401, error?.message || "Invalid Refresh Token");
+  }
 });
   
 
