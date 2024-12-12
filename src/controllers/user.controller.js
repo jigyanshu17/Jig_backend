@@ -210,6 +210,70 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     throw new ApiError(401, error?.message || "Invalid Refresh Token");
   }
 });
+
+
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  const userId = req.user._id; // Assuming you have authentication middleware that adds user to req
+
+   // Validate input
+  if (!oldPasswordPassword || !newPassword ) {
+    return res.status(400).json({
+      success: false,
+      message: "All fields are required",
+    });
+  }
+
+  // // Check if new passwords match
+  // if (newPassword !== confirmNewPassword) {
+  //   return res.status(400).json({
+  //     success: false,
+  //     message: "New passwords do not match",
+  //   });
+  // }
+  // Find the user
+  const user = await User.findById(userId);
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+
+  // Verify current password
+  const isPasswordCorrect = await user.comparePassword(oldPassword);
+
+  if (!isPasswordCorrect) {
+    return res.status(401).json({
+      success: false,
+      message: "Current password is incorrect",
+    });
+  }
+
+  const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
+  if (!passwordRegex.test(newPassword)) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character",
+    });
+  }
+
+  try {
+    // Set and save new password
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: false });
+    
+    res.status(200).json(new ApiResponse(200, {}, "Password changed successfully"));
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error changing password",
+      error: error.message,
+    });
+  }
+});
   
 
   
