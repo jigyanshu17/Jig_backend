@@ -27,5 +27,26 @@ import fs from "fs";
      return null;
    }
 };
+
+const deleteFromCloudinary = async (fileUrl) => {
+  try {
+    if (!fileUrl) throw new Error("File URL is required for deletion");
+
+    // Extract public_id from file URL
+    const publicId = fileUrl.split("/").pop().split(".")[0]; // Extract public ID from URL
+
+    // Delete file from Cloudinary
+    const result = await cloudinary.uploader.destroy(publicId);
+
+    if (result.result !== "ok") {
+      throw new Error("Failed to delete file from Cloudinary");
+    }
+
+    return result; // Return Cloudinary response
+  } catch (error) {
+    console.error("Cloudinary deletion failed:", error.message);
+    throw new Error("Cloudinary deletion failed: " + error.message);
+  }
+};
  
-  export { uploadToCloudinary };
+  export { uploadToCloudinary, deleteFromCloudinary };
