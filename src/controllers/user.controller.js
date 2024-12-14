@@ -286,6 +286,35 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   );
 });
 
+const updateAccountDetail = asyncHandler(async (req, res) => {
+  const { fullName, email } = req.body;
+
+  // Check for required fields
+  if (!fullName && !email) {
+    throw new ApiError(400, "Please provide fullName or email to update");
+  }
+
+  // Validate email if provided
+  if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+    throw new ApiError(400, "Invalid email format");
+  }
+
+  const userId = req.user?._id; // Get user ID from req.user set by verifyJWT middleware
+
+  // Update user details
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { ...(fullName && { fullName }), ...(email && { email }) }, // Update fields only if they are provided
+    { new: true, runValidators: true } // Return the updated document and validate changes
+  ).select("-password ");
+
+  if (!updatedUser) {
+    throw new ApiError(404, "User not found");
+  }
+
+  return res.status(200).json(new ApiResponse(200, updatedUser, "User details updated successfully"));
+});
+
   
 
 export {
@@ -295,4 +324,5 @@ export {
   refreshAccessToken,
   changeCurrentPassword,
   getCurrentUser,
+  updateAccountDetail,
 };
