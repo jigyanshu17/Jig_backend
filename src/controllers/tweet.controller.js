@@ -93,7 +93,7 @@ const updateTweet = asyncHandler(async (req, res) => {
       $set: { content },
     },
     { new: true } // Return the updated document
-  ).populate("owner", "username fullName avatar");
+  ).populate("owner", "username fullName avatar");// instead of this use mongoose aggregate method
 
   // Handle update failure
   if (!updatedTweet) {
