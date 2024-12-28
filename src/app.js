@@ -18,11 +18,13 @@ app.use(cookieParser());
 
 //import router
 import userRouter from './routes/user.router.js';
+import tweetrouter from './routes/tweet.router.js';
 
 
 
 //declare routes
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/tweets', tweetrouter);
 
 
 

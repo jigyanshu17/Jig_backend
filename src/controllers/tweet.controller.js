@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import { Tweet } from "../models/tweet.model.js";
-import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -33,7 +32,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
   // Use aggregation pipeline to fetch tweets and populate owner details
   const tweets = await Tweet.aggregate([
     // Match tweets by the userId
-    { $match: { owner: mongoose.Types.ObjectId(userId) } },
+    { $match: { owner: new mongoose.Types.ObjectId(userId) } },
 
     // Sort tweets by creation date (descending)
     { $sort: { createdAt: -1 } },
